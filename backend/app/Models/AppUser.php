@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class AppUser extends Authenticatable implements JWTSubject
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<\Database\Factories\AppUserFactory> */
     use HasFactory, Notifiable;
 
     protected $table = 'app_user';
