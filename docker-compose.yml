@@ -25,3 +25,14 @@ services:
       - ./mysql/entrypoint:/docker-entrypoint-initdb.d
     networks:
       - main
+
+  phpmyadmin:
+    image: phpmyadmin
+    env_file:
+      - ./phpmyadmin/.env
+    ports:
+      - "3307:80"
+    networks:
+      - main
+    depends_on:
+      - mysql
