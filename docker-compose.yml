@@ -36,3 +36,10 @@ services:
       - main
     depends_on:
       - mysql
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    environment:
+      API_URL: http://localhost/api/app/openapi
+    ports:
+      - "8080:8080"

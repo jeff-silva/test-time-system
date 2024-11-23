@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApiError;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -28,7 +29,7 @@ class AuthController extends Controller
         $credentials = request(['email', 'password']);
 
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            throw new ApiError(401, 'Unauthorized');
         }
 
         return $this->respondWithToken($token);
@@ -36,7 +37,9 @@ class AuthController extends Controller
 
     public function me()
     {
-        return auth()->user();
+        $user = auth()->user();
+        if (!$user) throw new ApiError(401, 'Unauthorized');
+        return $user;
     }
 
     public function logout()
