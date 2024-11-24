@@ -23,23 +23,23 @@ class TodoProjectRestTest extends TestCase
 
     public function test_show(): void
     {
-        $model = \App\Models\TodoProject::orderBy('id', 'desc')->first();
-        $response = $this->asMainUser()->get("/api/todo_project/{$model->id}");
+        $todoProject = \App\Models\TodoProject::orderBy('id', 'desc')->first();
+        $response = $this->asMainUser()->get("/api/todo_project/{$todoProject->id}");
         $response->assertStatus(200);
     }
 
     public function test_update(): void
     {
-        $model = \App\Models\TodoProject::orderBy('id', 'desc')->first();
-        $model->name = 'Updated ' . uniqid();
-        $response = $this->asMainUser()->put("/api/todo_project/{$model->id}", $model->toArray());
+        $todoProject = \App\Models\TodoProject::orderBy('id', 'desc')->first();
+        $todoProject->name = 'Updated ' . uniqid();
+        $response = $this->asMainUser()->put("/api/todo_project/{$todoProject->id}", $todoProject->toArray());
         $response->assertStatus(200);
     }
 
     public function test_destroy(): void
     {
-        $model = \App\Models\TodoProject::orderBy('id', 'desc')->first();
-        $response = $this->asMainUser()->delete("/api/todo_project/{$model->id}");
+        $todoProject = \App\Models\TodoProject::orderBy('id', 'desc')->first();
+        $response = $this->asMainUser()->delete("/api/todo_project/{$todoProject->id}");
         $response->assertStatus(200);
     }
 }
