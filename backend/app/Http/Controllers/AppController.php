@@ -18,9 +18,9 @@ class AppController extends Controller
             'openapi' => '3.0.3',
             'info' => [
                 'version' => '1.0.0',
-                'title' => env('APP_NAME'),
+                'title' => env('APP_NAME') ?? '',
                 'contact' => [
-                    'email' => env('MAIL_FROM_ADDRESS'),
+                    'email' => env('MAIL_FROM_ADDRESS') ?? '',
                 ],
             ],
             'servers' => [
@@ -74,8 +74,8 @@ class AppController extends Controller
                         'operationId' => $route->getName(),
                         'parameters' => config("openapi.paths.{$uri}.parameters", []),
                         'requestBody' => config("openapi.paths.{$uri}.requestBody", []),
-                        'consumes' => ['application/json', 'multipart/form-data'],
-                        'produces' => ['application/json'],
+                        // 'consumes' => ['application/json', 'multipart/form-data'],
+                        // 'produces' => ['application/json'],
                         'responses' => [
                             '200' => ['description' => 'Success'],
                         ],
@@ -86,8 +86,11 @@ class AppController extends Controller
                             $item['parameters'][] = [
                                 'name' => $paramName,
                                 'in' => 'query',
-                                'default' => $paramValue ?? '',
-                                // 'schema' => ['type' => 'string'],
+                                'required' => false,
+                                'schema' => [
+                                    'type' => 'string',
+                                    'default' => $paramValue ?? '',
+                                ],
                             ];
                         }
                     }
@@ -96,7 +99,11 @@ class AppController extends Controller
                         $item['parameters'][] = [
                             'name' => $paramName,
                             'in' => 'path',
-                            'schema' => ['type' => 'string'],
+                            'required' => true,
+                            'schema' => [
+                                'type' => 'string',
+                                'default' => '',
+                            ],
                         ];
                     }
 
@@ -129,6 +136,10 @@ class AppController extends Controller
                         ];
                     }
 
+                    if (empty($item['requestBody'])) {
+                        unset($item['requestBody']);
+                    }
+
                     $openapi['paths'][$uri][$method] = $item;
                 }
             }
@@ -152,7 +163,14 @@ class AppController extends Controller
             ];
             foreach ($table_columns as $col) {
                 $type = preg_split('/[^a-zA-Z]/', $col->Type);
-                $type = $type[0] ?? 'varchar';
+                $type = $type[0] ?? 'string';
+
+                if (in_array($type, ['varchar', 'text', 'date', 'datetime', 'timestamp'])) {
+                    $type = 'string';
+                } else {
+                    $type = 'number';
+                }
+
                 $schema['properties'][$col->Field] = ['type' => $type];
             }
 
