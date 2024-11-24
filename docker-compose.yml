@@ -43,3 +43,14 @@ services:
       API_URL: http://localhost/api/app/openapi
     ports:
       - "8080:8080"
+
+  frontend:
+    image: node:22.11.0
+    working_dir: /app
+    command: bash -c "yarn install && yarn dev"
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - apache-php
