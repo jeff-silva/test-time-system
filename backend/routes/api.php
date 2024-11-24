@@ -14,3 +14,5 @@ Route::post('auth/login', [Controllers\AuthController::class, 'login'])->name('a
 Route::post('auth/logout', [Controllers\AuthController::class, 'logout'])->name('auth.logout');
 Route::post('auth/refresh', [Controllers\AuthController::class, 'refresh'])->name('auth.refresh');
 Route::post('auth/me', [Controllers\AuthController::class, 'me'])->name('auth.me');
+
+Route::apiResource('todo_project', Controllers\TodoProjectController::class);

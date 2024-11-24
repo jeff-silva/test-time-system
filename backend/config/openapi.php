@@ -16,22 +16,6 @@ return [
                     ],
                 ],
             ],
-            // 'parameters' => [
-            //     [
-            //         'name' => 'email',
-            //         'in' => 'formData',
-            //         'type' => 'string',
-            //         'required' => true,
-            //         'default' => 'main@grr.la',
-            //     ],
-            //     [
-            //         'name' => 'password',
-            //         'in' => 'formData',
-            //         'type' => 'string',
-            //         'required' => true,
-            //         'default' => 'main@grr.la',
-            //     ],
-            // ],
         ],
     ],
 ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Arr;
+use App\Exceptions\ApiError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -35,15 +36,7 @@ class AppController extends Controller
                         'bearerFormat' => 'JWT',
                     ],
                 ],
-                'schemas' => [
-                    // 'Pet' => [
-                    //     'type' => 'object',
-                    //     'required' => ['petType'],
-                    //     'properties' => [
-                    //         'petType' => ['type' => 'string'],
-                    //     ],
-                    // ],
-                ],
+                'schemas' => [],
             ],
         ];
 
@@ -51,9 +44,18 @@ class AppController extends Controller
             if (!str_starts_with($route->uri, 'api/')) continue;
 
             if (isset($route->action['controller'])) {
-                $controller = preg_replace('/Controller.+/', '', Arr::last(explode('\\', $route->action['controller'])));
-                $openapi['tags'][$controller] = [
-                    'name' => $controller,
+                $name = class_basename(preg_replace('/Controller@.+/', '', $route->action['controller']));
+                list($controller, $controllerMethod) = explode('@', $route->action['controller']);
+                $controller = app($controller);
+
+                try {
+                    $model = app("\App\Models\\{$name}");
+                } catch (\Exception $err) {
+                    $model = false;
+                }
+
+                $openapi['tags'][$name] = [
+                    'name' => $name,
                 ];
 
                 $uri = '/' . str_replace('api/', '', $route->uri);
@@ -65,8 +67,9 @@ class AppController extends Controller
                 foreach ($route->methods as $method) {
                     if (in_array($method, ['HEAD', 'PATCH'])) continue;
                     $method = strtolower($method);
+
                     $item = [
-                        'tags' => [$controller],
+                        'tags' => [$name],
                         'operationId' => $route->getName(),
                         'parameters' => config("openapi.paths.{$uri}.parameters", []),
                         'requestBody' => config("openapi.paths.{$uri}.requestBody", []),
@@ -76,6 +79,48 @@ class AppController extends Controller
                             '200' => ['description' => 'Success'],
                         ],
                     ];
+
+                    if ($model and $controllerMethod == 'index') {
+                        foreach ($model->searchParams() as $paramName => $paramValue) {
+                            $item['parameters'][] = [
+                                'name' => $paramName,
+                                'in' => 'query',
+                                'default' => $paramValue ?? '',
+                                // 'schema' => ['type' => 'string'],
+                            ];
+                        }
+                    }
+
+                    foreach ($route->parameterNames() as $paramName) {
+                        $item['parameters'][] = [
+                            'name' => $paramName,
+                            'in' => 'path',
+                            'schema' => ['type' => 'string'],
+                        ];
+                    }
+
+                    // Request body fields
+                    if ($model and in_array($method, ['post', 'put'])) {
+                        if (!isset($item['requestBody']['content'])) {
+                            $item['requestBody'] = [
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => [
+                                            'type' => 'object',
+                                            'properties' => [],
+                                        ],
+                                    ],
+                                ],
+                            ];
+                        }
+
+                        foreach ($model->getFillable() as $column) {
+                            $item['requestBody']['content']['application/json']['schema']['properties'][$column] = [
+                                'type' => 'string',
+                                'default' => '',
+                            ];
+                        }
+                    }
 
                     if (in_array('api', $route->action['middleware'])) {
                         $item['security'] = [

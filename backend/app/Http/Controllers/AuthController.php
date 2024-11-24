@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Exceptions\ApiError;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class AuthController extends Controller
+class AuthController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {

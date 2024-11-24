@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\ModelTrait;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class AppUser extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\AppUserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, ModelTrait;
 
     protected $table = 'app_user';
 
