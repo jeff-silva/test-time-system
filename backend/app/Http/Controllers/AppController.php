@@ -42,6 +42,7 @@ class AppController extends Controller
 
         foreach (Route::getRoutes() as $route) {
             if (!str_starts_with($route->uri, 'api/')) continue;
+            $middleware_security = in_array('auth:api', $route->gatherMiddleware());
 
             if (isset($route->action['controller'])) {
                 $name = class_basename(preg_replace('/Controller@.+/', '', $route->action['controller']));
@@ -122,7 +123,7 @@ class AppController extends Controller
                         }
                     }
 
-                    if (in_array('api', $route->action['middleware'])) {
+                    if ($middleware_security) {
                         $item['security'] = [
                             ['bearerAuth' => []],
                         ];
