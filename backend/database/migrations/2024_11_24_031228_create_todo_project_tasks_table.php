@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('todo_project_task', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description');
-            $table->boolean('finished');
+            $table->text('description')->nullable();
+            $table->boolean('finished')->nullable();
             $table->foreignId('project_id')->constrained('todo_project', 'id');
             $table->timestamps();
         });

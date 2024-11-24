@@ -2,29 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TodoProjectRestTest extends TestCase
 {
-    public function asMainUser()
-    {
-        $token = auth()->tokenById(1);
-        return $this->withHeaders(['Authorization' => "Bearer {$token}"]);
-    }
-
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->artisan('migrate');
-        $this->artisan('db:seed');
-    }
-
-    /**
-     * A basic feature test example.
-     */
     public function test_index(): void
     {
         $response = $this->asMainUser()->get('/api/todo_project');
