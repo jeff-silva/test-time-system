@@ -26,6 +26,6 @@ class TodoProjectTask extends Model
 
     public function project(): HasOne
     {
-        return $this->hasOne('todo_project', 'id', 'project_id');
+        return $this->hasOne(TodoProject::class, 'id', 'project_id');
     }
 }
