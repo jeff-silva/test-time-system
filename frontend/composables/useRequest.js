@@ -58,7 +58,7 @@ export default (options = {}) => {
 
         const resp = await fetch(fetchUrl, fetchOptions);
         const data = await resp.json();
-        options.onSuccess({ ...resp, data });
+        options.onSuccess({ ...fetchOptions, data });
 
         r.response = data;
       } catch (err) {

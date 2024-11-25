@@ -13,4 +13,13 @@ class TodoProjectTask extends Model
 
     protected $table = 'todo_project_task';
     protected $fillable = ['name', 'description', 'finished', 'project_id'];
+
+    public function searchQuery($query, $params)
+    {
+        if ($params->project_id) {
+            $query->where('project_id', $params->project_id);
+        }
+
+        return $query;
+    }
 }

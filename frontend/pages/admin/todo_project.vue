@@ -58,7 +58,15 @@
 
     <v-dialog
       v-model="todoProjectDialog.value"
-      max-width="600"
+      max-width="800"
+      scrollable
+      @update:modelValue="
+        () => {
+          todoProjectTaskUpdate.data = {};
+          todoProjectTaskList.params.project_id = null;
+          todoProjectTaskList.response.data = [];
+        }
+      "
     >
       <v-card>
         <v-card-title>{{
@@ -69,6 +77,67 @@
             label="Nome"
             v-model="todoProjectSave.data.name"
           />
+
+          <strong>Tasks</strong>
+          <br />
+
+          <v-text-field
+            v-model="todoProjectTaskCreate.data.name"
+            :append-inner-icon="
+              todoProjectTaskCreate.busy
+                ? 'line-md:loading-twotone-loop'
+                : 'mdi-plus'
+            "
+            @keyup.enter="todoProjectTaskCreate.create()"
+            @click:append-inner="todoProjectTaskCreate.create()"
+          />
+
+          <v-expansion-panels variant="accordion">
+            <template v-for="o in todoProjectTaskList.response.data">
+              <v-expansion-panel
+                :title="o.name"
+                :value="o.id"
+              >
+                <v-expansion-panel-text>
+                  <v-text-field
+                    v-model="o.name"
+                    label="Nome"
+                  />
+                  <v-textarea
+                    v-model="o.description"
+                    label="Descrição"
+                  />
+                  <v-switch
+                    hide-details="auto"
+                    v-model="o.finished"
+                    :true-value="1"
+                    false-value=""
+                    :color="o.finished ? 'success' : null"
+                    :label="o.finished ? 'Concluído' : 'Em andamento'"
+                  />
+
+                  <div class="d-flex justify-end">
+                    <v-btn
+                      text="Deletar"
+                      color="error"
+                      @click="todoProjectTaskDelete.delete(o)"
+                    />
+                    <v-spacer />
+                    <v-btn
+                      text="Salvar"
+                      color="success"
+                      :loading="todoProjectTaskUpdate.busy"
+                      @click="todoProjectTaskUpdate.update(o)"
+                    />
+                  </div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </template>
+          </v-expansion-panels>
+
+          <!-- <pre>{{ todoProjectTaskList }}</pre> -->
+          <!-- <pre>{{ todoProjectTaskUpdate }}</pre> -->
+          <!-- <pre>todoProjectTaskDelete: {{ todoProjectTaskDelete }}</pre> -->
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -87,20 +156,17 @@
     </v-dialog>
 
     <v-dialog
-      v-model="todoProjectDelete.dialog"
+      v-model="dialog.value"
       max-width="400"
     >
       <v-card>
-        <v-card-title class="bg-error"
-          >Deletar {{ todoProjectDelete.item.name }}?</v-card-title
-        >
-        <v-card-text>A ação é irreversível</v-card-text>
+        <v-card-title class="bg-error">{{ dialog.title }}</v-card-title>
+        <v-card-text>{{ dialog.text }}</v-card-text>
         <v-card-actions>
           <v-btn
             text="Confirmar"
             class="bg-error"
-            :loading="todoProjectDelete.busy"
-            @click="todoProjectDelete.submit()"
+            @click="dialog.actionConfirm()"
           />
         </v-card-actions>
       </v-card>
@@ -132,10 +198,17 @@ const todoProjectSave = useRequest({
     todoProjectSave.url = `api://todo_project/${data.id}`;
     todoProjectSave.data = { ...data };
     todoProjectDialog.set(true);
+    todoProjectTaskUpdate.data.project_id = data.id;
+    todoProjectTaskList.params.project_id = data.id;
+    todoProjectTaskList.submit();
   },
-  async onSuccess() {
+  async onSuccess(resp) {
+    if (resp.method == "POST") {
+      todoProjectSave.update(resp.data.entity);
+    } else {
+      todoProjectDialog.set(false);
+    }
     await todoProjectList.submit();
-    todoProjectDialog.set(false);
   },
 });
 
@@ -145,9 +218,13 @@ const todoProjectDelete = useRequest({
   item: false,
   dialog: false,
   delete(data) {
-    todoProjectDelete.dialog = true;
-    todoProjectDelete.url = `api://todo_project/${data.id}`;
-    todoProjectDelete.item = data;
+    dialog.confirm({
+      title: `Deletar ${data.name}?`,
+      async onSuccess() {
+        todoProjectDelete.url = `api://todo_project/${data.id}`;
+        todoProjectDelete.submit();
+      },
+    });
   },
   async onSuccess() {
     todoProjectDelete.dialog = false;
@@ -155,10 +232,89 @@ const todoProjectDelete = useRequest({
   },
 });
 
+const todoProjectTaskList = useRequest({
+  method: "get",
+  url: "api://todo_project_task",
+  params: { project_id: null },
+  response: { data: [] },
+});
+
+const todoProjectTaskCreate = useRequest({
+  method: "post",
+  url: "api://todo_project_task",
+  onSuccess() {
+    todoProjectTaskCreate.data = {};
+    todoProjectTaskList.submit();
+  },
+  async create() {
+    todoProjectTaskCreate.data.project_id = todoProjectSave.data.id;
+    await todoProjectTaskCreate.submit();
+    todoProjectTaskCreate.data = {};
+  },
+});
+
+const todoProjectTaskUpdate = useRequest({
+  method: "post",
+  url: "api://todo_project_task",
+  update(data) {
+    todoProjectTaskUpdate.method = "put";
+    todoProjectTaskUpdate.url = `api://todo_project_task/${data.id}`;
+    todoProjectTaskUpdate.data = data;
+    todoProjectTaskUpdate.submit();
+  },
+  onSuccess() {
+    todoProjectTaskUpdate.data = {};
+    todoProjectTaskList.submit();
+  },
+});
+
+const todoProjectTaskDelete = useRequest({
+  method: "delete",
+  url: "api://todo_project_task",
+  delete(data) {
+    dialog.confirm({
+      title: `Deletar ${data.name}?`,
+      async onSuccess() {
+        todoProjectTaskDelete.url = `api://todo_project_task/${data.id}`;
+        await todoProjectTaskDelete.submit();
+      },
+    });
+  },
+  onSuccess() {
+    todoProjectTaskList.submit();
+  },
+});
+
 const todoProjectDialog = reactive({
   value: false,
   set(value) {
     todoProjectDialog.value = value;
+  },
+});
+
+const dialog = reactive({
+  value: false,
+  title: "",
+  text: "",
+  onSuccess: () => {},
+  onError: () => {},
+  set(value) {
+    dialog.value = value;
+  },
+  confirm(data) {
+    dialog.set(true);
+    dialog.title = data.title ?? "Deletar item?";
+    dialog.text = data.text ?? "Deseja prosseguir com a ação?";
+    dialog.onSuccess = data.onSuccess ?? function () {};
+    dialog.onError = data.onError ?? function () {};
+  },
+  actionConfirm() {
+    dialog.set(false);
+    dialog.onSuccess();
+  },
+  actionError() {
+    dialog.set(false);
+    dialog.onError();
   },
 });
 

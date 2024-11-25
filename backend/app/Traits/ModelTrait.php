@@ -20,7 +20,7 @@ trait ModelTrait
 
         $query->orderBy($params->order_by, $params->order);
 
-        $query = $this->searchQuery($query);
+        $query = $this->searchQuery($query, $params);
         $data = $query->paginate($params->per_page)->toArray();
 
         if ($returnData) {
@@ -55,7 +55,7 @@ trait ModelTrait
         ], $merge);
     }
 
-    protected function searchQuery($query)
+    protected function searchQuery($query, $params)
     {
         return $query;
     }

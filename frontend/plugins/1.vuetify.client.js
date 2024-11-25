@@ -22,15 +22,19 @@ import * as labsComponents from "vuetify/labs/components";
 import DayJsAdapter from "@date-io/dayjs";
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  const defaults = {};
-
   const vuetifyOptions = {
     components: {
       ...components,
       ...labsComponents,
     },
     directives,
-    defaults,
+    defaults: {
+      VTextField: { variant: "solo-filled" },
+      VTextarea: { variant: "solo-filled" },
+      VSelect: { variant: "solo-filled" },
+      VAutocomplete: { variant: "solo-filled" },
+      VFileInput: { variant: "solo-filled" },
+    },
     icons: {
       defaultSet: "iconify",
       sets: {
