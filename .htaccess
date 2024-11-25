@@ -1,0 +1,7 @@
+php_value date.timezone America/Sao_Paulo
+
+RewriteEngine On
+
+# Redireciona tudo para /backend/public
+RewriteCond %{REQUEST_URI} !^/backend/public
+RewriteRule ^(.*)$ /backend/public/$1 [L]

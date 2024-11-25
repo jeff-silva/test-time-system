@@ -1,0 +1,16 @@
+# Installation: https://dashboard.ngrok.com/get-started/setup/linux
+# Create ngrok.yml: cp ngrok.example.yml ngrok.yml
+# set authtoken in ngrok.yml
+# run: ngrok start --config ngrok.yml --all
+version: 2
+authtoken: xxx
+tunnels:
+  apache-php:
+    proto: http
+    addr: https://localhost:80
+  swagger-ui:
+    proto: http
+    addr: 8080
+  frontend:
+    proto: http
+    addr: 3000
