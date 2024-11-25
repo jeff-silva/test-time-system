@@ -16,8 +16,14 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->boolean('finished')->nullable();
-            $table->foreignId('project_id')->constrained('todo_project', 'id');
+            $table->unsignedBigInteger('project_id');
             $table->timestamps();
+
+            $table->foreign('project_id')
+                ->references('id')
+                ->on('todo_project')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
         });
     }
 

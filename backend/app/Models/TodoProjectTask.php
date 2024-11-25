@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\ModelTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TodoProjectTask extends Model
 {
@@ -21,5 +22,10 @@ class TodoProjectTask extends Model
         }
 
         return $query;
+    }
+
+    public function project(): HasOne
+    {
+        return $this->hasOne('todo_project', 'id', 'project_id');
     }
 }
