@@ -5,13 +5,10 @@
         VContainer: { maxWidth: 1200 },
       }"
     >
-      <v-navigation-drawer width="244">
-        <v-sheet
-          color="grey-lighten-5"
-          height="128"
-          width="100%"
-        ></v-sheet>
-
+      <v-navigation-drawer
+        v-model="drawer.value"
+        width="300"
+      >
         <v-list>
           <v-list-item
             to="/admin"
@@ -30,6 +27,11 @@
         height="72"
         flat
       >
+        <v-btn
+          icon="flowbite:bars-outline"
+          class="d-lg-none"
+          @click="drawer.toggle()"
+        />
         <v-spacer />
 
         <v-responsive max-width="156">
@@ -52,3 +54,15 @@
     </v-defaults-provider>
   </v-app>
 </template>
+
+<script setup>
+const drawer = reactive({
+  value: null,
+  toggle() {
+    drawer.set(!drawer.value);
+  },
+  set(value) {
+    drawer.value = value;
+  },
+});
+</script>
