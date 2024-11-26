@@ -13,12 +13,14 @@
       <v-table>
         <colgroup>
           <col width="*" />
+          <col width="150px" />
           <col width="0" />
           <col width="0" />
         </colgroup>
         <thead>
           <tr>
             <th>Projeto</th>
+            <th>Tasks</th>
             <th></th>
             <th></th>
           </tr>
@@ -28,6 +30,29 @@
           <template v-for="o in todoProjectList.response.data">
             <tr>
               <td>{{ o.name }}</td>
+              <td>
+                <div
+                  class="text-center"
+                  :class="{
+                    'text-success':
+                      o.computed.tasksFinished == o.computed.tasksTotal,
+                  }"
+                  style="white-space: nowrap"
+                >
+                  {{ o.computed.tasksFinished }} /
+                  {{ o.computed.tasksTotal }}
+                </div>
+                <v-progress-linear
+                  :color="
+                    o.computed.tasksFinished == o.computed.tasksTotal
+                      ? 'success'
+                      : null
+                  "
+                  :model-value="
+                    (o.computed.tasksFinished * 100) / o.computed.tasksTotal
+                  "
+                />
+              </td>
               <td class="pa-1">
                 <v-btn
                   v-tooltip="'Editar'"
@@ -59,12 +84,14 @@
     <v-dialog
       v-model="todoProjectDialog.value"
       max-width="800"
+      max-height="95vh"
       scrollable
       @update:modelValue="
         () => {
           todoProjectTaskUpdate.data = {};
           todoProjectTaskList.params.project_id = null;
           todoProjectTaskList.response.data = [];
+          todoProjectList.submit();
         }
       "
     >
@@ -78,66 +105,76 @@
             v-model="todoProjectSave.data.name"
           />
 
-          <strong>Tasks</strong>
-          <br />
+          <template v-if="todoProjectSave.data.id">
+            <strong>Tasks</strong>
+            <br />
 
-          <v-text-field
-            v-model="todoProjectTaskCreate.data.name"
-            :append-inner-icon="
-              todoProjectTaskCreate.busy
-                ? 'line-md:loading-twotone-loop'
-                : 'mdi-plus'
-            "
-            @keyup.enter="todoProjectTaskCreate.create()"
-            @click:append-inner="todoProjectTaskCreate.create()"
-          />
+            <v-text-field
+              v-model="todoProjectTaskCreate.data.name"
+              :append-inner-icon="
+                todoProjectTaskCreate.busy
+                  ? 'line-md:loading-twotone-loop'
+                  : 'mdi-plus'
+              "
+              @keyup.enter="todoProjectTaskCreate.create()"
+              @click:append-inner="todoProjectTaskCreate.create()"
+            />
 
-          <v-expansion-panels variant="accordion">
-            <template v-for="o in todoProjectTaskList.response.data">
-              <v-expansion-panel
-                :title="o.name"
-                :value="o.id"
-              >
-                <v-expansion-panel-text>
-                  <v-text-field
-                    v-model="o.name"
-                    label="Nome"
-                  />
-                  <v-textarea
-                    v-model="o.description"
-                    label="Descrição"
-                  />
-                  <v-switch
-                    hide-details="auto"
-                    v-model="o.finished"
-                    :true-value="1"
-                    false-value=""
-                    :color="o.finished ? 'success' : null"
-                    :label="o.finished ? 'Concluído' : 'Em andamento'"
-                  />
+            <table
+              cellspacing="10"
+              class="w-100"
+            >
+              <colgroup>
+                <col width="*" />
+                <col width="45" />
+                <col width="0" />
+              </colgroup>
+              <tbody>
+                <template v-for="o in todoProjectTaskList.response.data">
+                  <tr>
+                    <td>
+                      <v-text-field
+                        v-model="o.name"
+                        hide-details="auto"
+                        density="compact"
+                        @focus="todoProjectTaskView.id = o.id"
+                        @change="todoProjectTaskUpdate.update(o)"
+                      />
 
-                  <div class="d-flex justify-end">
-                    <v-btn
-                      text="Deletar"
-                      color="error"
-                      @click="todoProjectTaskDelete.delete(o)"
-                    />
-                    <v-spacer />
-                    <v-btn
-                      text="Salvar"
-                      color="success"
-                      :loading="todoProjectTaskUpdate.busy"
-                      @click="todoProjectTaskUpdate.update(o)"
-                    />
-                  </div>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </template>
-          </v-expansion-panels>
-
-          <!-- <pre>{{ todoProjectTaskList }}</pre> -->
-          <!-- <pre>{{ todoProjectTaskUpdate }}</pre> -->
-          <!-- <pre>todoProjectTaskDelete: {{ todoProjectTaskDelete }}</pre> -->
+                      <v-expand-transition>
+                        <v-textarea
+                          v-if="todoProjectTaskView.id == o.id"
+                          v-model="o.description"
+                          label="Descrição"
+                          class="mt-2"
+                          @change="todoProjectTaskUpdate.update(o)"
+                        />
+                      </v-expand-transition>
+                    </td>
+                    <td class="pa-0">
+                      <v-switch
+                        v-model="o.finished"
+                        :true-value="1"
+                        false-value=""
+                        hide-details="auto"
+                        :color="o.finished ? 'success' : null"
+                        v-tooltip="o.finished ? 'Concluído' : 'Em andamento'"
+                        @update:model-value="todoProjectTaskUpdate.update(o)"
+                      />
+                    </td>
+                    <td class="pa-0">
+                      <v-btn
+                        icon="mdi-delete"
+                        color="error"
+                        flat
+                        @click="todoProjectTaskDelete.delete(o)"
+                      />
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </template>
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -256,16 +293,20 @@ const todoProjectTaskCreate = useRequest({
 const todoProjectTaskUpdate = useRequest({
   method: "post",
   url: "api://todo_project_task",
-  update(data) {
+  async update(data) {
     todoProjectTaskUpdate.method = "put";
     todoProjectTaskUpdate.url = `api://todo_project_task/${data.id}`;
     todoProjectTaskUpdate.data = data;
-    todoProjectTaskUpdate.submit();
+    await todoProjectTaskUpdate.submit();
   },
   onSuccess() {
     todoProjectTaskUpdate.data = {};
-    todoProjectTaskList.submit();
+    // todoProjectTaskList.submit();
   },
+});
+
+const todoProjectTaskView = reactive({
+  id: null,
 });
 
 const todoProjectTaskDelete = useRequest({

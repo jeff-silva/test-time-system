@@ -33,6 +33,7 @@
 
 <script setup>
 const app = useApp();
+const route = useRoute();
 const router = useRouter();
 
 const login = useRequest({
@@ -44,7 +45,7 @@ const login = useRequest({
   },
   onSuccess(resp) {
     app.setToken(resp.data.access_token);
-    router.push("/admin");
+    router.push(route.query.redirect ?? "/admin");
   },
 });
 </script>
