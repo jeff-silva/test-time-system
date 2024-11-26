@@ -10,14 +10,9 @@
         width="300"
       >
         <v-list>
-          <v-list-item
-            to="/admin"
-            text="Dashboard"
-          />
-          <v-list-item
-            to="/admin/todo_project"
-            text="Projetos"
-          />
+          <template v-for="o in nav.items">
+            <v-list-item v-bind="o">{{ o.text }}</v-list-item>
+          </template>
         </v-list>
       </v-navigation-drawer>
 
@@ -56,6 +51,23 @@
 </template>
 
 <script setup>
+const app = useApp();
+const router = useRouter();
+
+const nav = reactive({
+  items: [
+    { text: "Dashboard", to: "/admin" },
+    { text: "Tarefas", to: "/admin/todo_project" },
+    {
+      text: "Sair",
+      onClick() {
+        app.setToken("");
+        router.push("/");
+      },
+    },
+  ],
+});
+
 const drawer = reactive({
   value: null,
   toggle() {

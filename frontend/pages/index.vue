@@ -39,10 +39,7 @@ const router = useRouter();
 const login = useRequest({
   method: "post",
   url: "api://auth/login",
-  data: {
-    email: "main@grr.la",
-    password: "main@grr.la",
-  },
+  data: {},
   onSuccess(resp) {
     app.setToken(resp.data.access_token);
     router.push(route.query.redirect ?? "/admin");
