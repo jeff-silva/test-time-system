@@ -125,13 +125,27 @@
               class="w-100"
             >
               <colgroup>
-                <col width="*" />
                 <col width="45" />
+                <col width="*" />
                 <col width="0" />
               </colgroup>
               <tbody>
                 <template v-for="o in todoProjectTaskList.response.data">
                   <tr>
+                    <td class="pa-0">
+                      <v-checkbox-btn
+                        v-model="o.finished"
+                        :true-value="1"
+                        :false-value="null"
+                        true-icon="material-symbols:check-box-outline"
+                        false-icon="material-symbols:check-box-outline-blank"
+                        density="comfortable"
+                        class="d-flex justify-center"
+                        style="zoom: 1.4"
+                        :color="o.finished == 1 ? 'success' : null"
+                        @update:model-value="todoProjectTaskUpdate.update(o)"
+                      />
+                    </td>
                     <td>
                       <v-text-field
                         v-model="o.name"
@@ -150,17 +164,6 @@
                           @change="todoProjectTaskUpdate.update(o)"
                         />
                       </v-expand-transition>
-                    </td>
-                    <td class="pa-0">
-                      <v-switch
-                        v-model="o.finished"
-                        :true-value="1"
-                        false-value=""
-                        hide-details="auto"
-                        :color="o.finished ? 'success' : null"
-                        v-tooltip="o.finished ? 'Concluído' : 'Em andamento'"
-                        @update:model-value="todoProjectTaskUpdate.update(o)"
-                      />
                     </td>
                     <td class="pa-0">
                       <v-btn
