@@ -42,7 +42,9 @@ const login = useRequest({
   data: {},
   onSuccess(resp) {
     app.setToken(resp.data.access_token);
-    router.push(route.query.redirect ?? "/admin");
+    setTimeout(() => {
+      router.push(route.query.redirect ?? "/admin");
+    }, 100);
   },
 });
 </script>

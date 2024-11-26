@@ -4,6 +4,7 @@
       <v-btn
         text="Novo"
         color="primary"
+        prepend-icon="mdi-plus"
         @click="todoProjectSave.create()"
       />
     </div>
@@ -13,7 +14,7 @@
       <v-table>
         <colgroup>
           <col width="*" />
-          <col width="150px" />
+          <col width="200px" />
           <col width="0" />
           <col width="0" />
         </colgroup>
@@ -151,6 +152,11 @@
                         v-model="o.name"
                         hide-details="auto"
                         density="compact"
+                        variant="plain"
+                        :style="{
+                          textDecoration:
+                            o.finished == 1 ? 'line-through' : null,
+                        }"
                         @focus="todoProjectTaskView.id = o.id"
                         @change="todoProjectTaskUpdate.update(o)"
                       />
@@ -211,13 +217,12 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- <pre>todoProjectSave: {{ todoProjectSave }}</pre> -->
-    <!-- <pre>todoProjectList: {{ todoProjectList }}</pre> -->
   </nuxt-layout>
 </template>
 
 <script setup>
+definePageMeta({ middleware: ["admin"] });
+
 const todoProjectList = useRequest({
   method: "get",
   url: "api://todo_project",
